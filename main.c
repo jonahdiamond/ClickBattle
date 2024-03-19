@@ -99,10 +99,14 @@ int main(void) {
 			deleteRToStart();
 			drawReadyR();
 		}
+		wait_for_sync();
+		pixel_buffer_start = *(pixel_ctrl_ptr + 1);//switch back to back buffer
     }
     deleteCLICKBATTLE();
 	deleteReadyB();
 	deleteReadyR();
+	wait_for_sync();
+	pixel_buffer_start = *(pixel_ctrl_ptr + 1);//switch back to back buffer
     while (/*someting?*/ 1) {
 		PS2_data = *(PS2_ptr);       // read the Data register in the PS/2 port
 		RVALID = PS2_data & 0x8000;  // extract the RVALID field
@@ -115,6 +119,8 @@ int main(void) {
 			*(LED_ptr) = 0x10;  // led commands are just here as a place holder
 		}
 		}
+		wait_for_sync();
+		pixel_buffer_start = *(pixel_ctrl_ptr + 1);//switch back to back buffer
 	}
   }
 
