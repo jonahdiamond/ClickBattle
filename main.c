@@ -6,7 +6,7 @@
 #include <stdio.h>
 
 bool click();
-bool start();  // title screen
+// bool start();  // title screen
 
 int main(void) {
   while (1) {
