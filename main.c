@@ -25,3 +25,7 @@ bool click() {
   }
   return true;
 }
+
+bool start() {
+  // start screen function
+}
