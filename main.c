@@ -71,61 +71,20 @@ int main(void) {
   return 0;
 }
 
-  bool start() {
-    // start screen message
-    for (int i = 0; i < 160; i++) {
-      for (int j = 0; j < 240; j++) {
-        plot_pixel(i, j, 0x001f);
-      }
-    }
-    for (int i = 160; i < 320; i++) {
-      for (int j = 0; j < 240; j++) {
-        plot_pixel(i, j, 0xf800);
-      }
-    }
-    drawCLICKBATTLE();
-  }
-
 bool start() {
-  // start screen message
-  for (int i = 0; i < 160; i++) {
-    for (int j = 0; j < 240; j++) {
-      plot_pixel(i, j, 0x001f);
-    }
-  }
-  for (int i = 160; i < 320; i++) {
-    for (int j = 0; j < 240; j++) {
-      plot_pixel(i, j, 0xf800);
-    }
-  }
-  // code for drawing a C
-  // top of C
-  draw_line(54, 30, 69, 30, 0xffff);
-  draw_line(54, 31, 69, 31, 0xffff);
-  // upper curve of C
-  draw_line(54, 30, 50, 38, 0xffff);
-  draw_line(54, 31, 50, 39, 0xffff);
-  draw_line(50, 38, 50, 50, 0xffff);
-  draw_line(51, 38, 51, 50, 0xffff);
-  draw_line(50, 50, 54, 58, 0xffff);
-  draw_line(51, 50, 54, 58, 0xffff);
-  draw_line(54, 58, 69, 58, 0xffff);
-  draw_line(54, 59, 69, 59, 0xffff);
-}
-  bool start() {
     // start screen message
     for (int i = 0; i < 160; i++) {
-      for (int j = 0; j < 240; j++) {
-        plot_pixel(i, j, 0x001f);
-      }
+        for (int j = 0; j < 240; j++) {
+            plot_pixel(i, j, 0x001f);
+        }
     }
     for (int i = 160; i < 320; i++) {
-      for (int j = 0; j < 240; j++) {
-        plot_pixel(i, j, 0xf800);
-      }
+        for (int j = 0; j < 240; j++) {
+            plot_pixel(i, j, 0xf800);
+        }
     }
     drawCLICKBATTLE();
-  }
+}
 
 bool game() {
   // game logic
