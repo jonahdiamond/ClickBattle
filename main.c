@@ -43,8 +43,9 @@ int main(void) {
   pixel_buffer_start = *(pixel_ctrl_ptr + 1);  // points to buffer 2 back
   //*(pixel_ctrl_ptr+1) = *pixel_ctrl_ptr;
   clear_screen();  // clears buffer
-  bool start();
-
+  start();
+    wait_for_sync();
+    pixel_buffer_start = *(pixel_ctrl_ptr + 1);//switch back to back buffer 
   volatile int* PS2_ptr = (int*)PS2_BASE;
   volatile int* LED_ptr = (int*)LED_BASE;
 
@@ -105,26 +106,32 @@ void wait_for_sync() {  // waits for V-sync and rendering to finish
   }
 }
 
-  void draw_line(int x0, int y0, int x1, int y1, short int line_color) {
+void draw_line(int x0, int y0, int x1, int y1, short int line_color) {
     int x, y;
-
+    if (x1 == x0){
+        x = x0;
+        for (int y = y0; y <= y1; y++){
+            plot_pixel(x, y, line_color);
+        }
+        return;
+    }
     int is_steep = abs(y1 - y0) / abs(x1 - x0);
     if (is_steep > 1) {
-      swap(&x0, &y0);
-      swap(&x1, &y1);
+        swap(&x0, &y0);
+        swap(&x1, &y1);
     }
     if (x0 > x1) {
-      swap(&x0, &x1);
-      swap(&y0, &y1);
+        swap(&x0, &x1);
+        swap(&y0, &y1);
     }
 
     for (x = x0; x <= x1; x++) {
-      y = y0 + (10 * (y1 - y0) * (x - x0) / (x1 - x0) + 5) / 10;
-      if (is_steep > 1) {
-        plot_pixel(y, x, line_color);
-      } else {
-        plot_pixel(x, y, line_color);
-      }
+        y = y0 + (10 * (y1 - y0) * (x - x0) / (x1 - x0) + 5) / 10;
+        if (is_steep > 1) {
+            plot_pixel(y, x, line_color);
+        } else {
+            plot_pixel(x, y, line_color);
+        }
     }
   }
 
@@ -156,138 +163,6 @@ void clear_screen() {
       plot_pixel(x, y, 0);
     }
   }
-}
-
-
-void drawCLICKBATTLE(){
-    // code for drawing a C
-    // top of C
-    draw_line(54, 30, 69, 30, 0xffff);
-    draw_line(54, 31, 69, 31, 0xffff);
-    // upper curve of C
-    draw_line(54, 30, 50, 38, 0xffff);
-    draw_line(54, 31, 50, 39, 0xffff);
-    // left line of C
-    draw_line(50, 38, 50, 50, 0xffff);
-    draw_line(51, 38, 51, 50, 0xffff);
-    // lower curve of C
-    draw_line(50, 50, 54, 58, 0xffff);
-    draw_line(51, 50, 54, 58, 0xffff);
-    // lower line of C
-    draw_line(54, 58, 69, 58, 0xffff);
-    draw_line(54, 59, 69, 59, 0xffff);
-
-    // code for drawing an L
-    // vertical line
-    draw_line(74, 30, 74, 59, 0xffff);
-    draw_line(75, 30, 75, 59, 0xffff);
-    // horizontal line
-    draw_line(74, 58, 90, 58, 0xffff);
-    draw_line(74, 59, 90, 59, 0xffff);
-
-    // code for drawing an I
-    draw_line(95, 30, 95, 59, 0xffff);
-    draw_line(96, 30, 96, 59, 0xffff);
-
-    // code for drawing a C
-    // top of C
-    draw_line(105, 30, 120, 30, 0xffff);
-    draw_line(105, 31, 120, 31, 0xffff);
-    // upper curve of C
-    draw_line(105, 30, 101, 38, 0xffff);
-    draw_line(105, 31, 101, 39, 0xffff);
-    // left line of C
-    draw_line(101, 38, 101, 50, 0xffff);
-    draw_line(102, 38, 102, 50, 0xffff);
-    // lower curve of C
-    draw_line(101, 50, 105, 58, 0xffff);
-    draw_line(102, 50, 105, 58, 0xffff);
-    // lower line of C
-    draw_line(105, 58, 120, 58, 0xffff);
-    draw_line(105, 59, 120, 59, 0xffff);
-
-    // code for drawing a K
-    // vertical line
-    draw_line(125, 30, 125, 59, 0xffff);
-    draw_line(126, 30, 126, 59, 0xffff);
-    // upper diagonal
-    draw_line(125, 45, 135, 30, 0xffff);
-    draw_line(126, 45, 136, 30, 0xffff);
-    // lower diagonal
-    draw_line(126, 45, 136, 59, 0xffff);
-    draw_line(125, 45, 135, 59, 0xffff);
-
-    // code for drawing a B
-    // vertical
-    draw_line(162 + 22, 30, 162 + 22, 59, 0xffff);
-    draw_line(163 + 22, 30, 163 + 22, 59, 0xffff);
-    // upper curve
-    draw_line(162 + 22, 30, 167 + 22, 30, 0xffff);
-    draw_line(162 + 22, 31, 167 + 22, 31, 0xffff);
-    draw_line(167 + 22, 30, 172 + 22, 36, 0xffff);
-    draw_line(167 + 22, 31, 172 + 22, 37, 0xffff);
-    draw_line(172 + 22, 36, 172 + 22, 41, 0xffff);
-    draw_line(173 + 22, 36, 173 + 22, 41, 0xffff);
-    draw_line(171 + 22, 41, 166 + 22, 45, 0xffff);
-    draw_line(173 + 22, 41, 167 + 22, 45, 0xffff);
-    // lower curve
-    draw_line(167 + 22, 45, 172 + 22, 51, 0xffff);
-    draw_line(167 + 22, 46, 172 + 22, 52, 0xffff);
-    draw_line(172 + 22, 51, 172 + 22, 56, 0xffff);
-    draw_line(173 + 22, 51, 173 + 22, 56, 0xffff);
-    draw_line(172 + 22, 56, 166 + 22, 59, 0xffff);
-    draw_line(173 + 22, 56, 167 + 22, 59, 0xffff);
-    draw_line(162 + 22, 58, 167 + 22, 58, 0xffff);
-    draw_line(162 + 22, 59, 167 + 22, 59, 0xffff);
-
-    // code for drawing an A
-    // left diagonal
-    draw_line(177 + 22, 59, 184 + 22, 30, 0xffff);
-    draw_line(178 + 22, 59, 185 + 22, 30, 0xffff);
-    // right diagonal
-    draw_line(191 + 22, 59, 184 + 22, 30, 0xffff);
-    draw_line(192 + 22, 59, 185 + 22, 30, 0xffff);
-    // middle line
-    draw_line(181 + 22, 44, 188 + 22, 44, 0xffff);
-    draw_line(181 + 22, 45, 188 + 22, 45, 0xffff);
-
-    // code for drawing a T
-    // horizontal
-    draw_line(195 + 22, 30, 205 + 22, 30, 0xffff);
-    draw_line(195 + 22, 31, 205 + 22, 31, 0xffff);
-    // vertical
-    draw_line(200 + 22, 30, 200 + 22, 59, 0xffff);
-    draw_line(201 + 22, 30, 201 + 22, 59, 0xffff);
-
-    // code for drawing a T
-    // horizontal
-    draw_line(210 + 22, 30, 220 + 22, 30, 0xffff);
-    draw_line(210 + 22, 31, 220 + 22, 31, 0xffff);
-    // vertical
-    draw_line(215 + 22, 30, 215 + 22, 59, 0xffff);
-    draw_line(216 + 22, 30, 216 + 22, 59, 0xffff);
-
-    // code for drawing an L
-    // vertical line
-    draw_line(225 + 22, 30, 225 + 22, 59, 0xffff);
-    draw_line(226 + 22, 30, 226 + 22, 59, 0xffff);
-    // horizontal line
-    draw_line(225 + 22, 58, 241 + 22, 58, 0xffff);
-    draw_line(225 + 22, 59, 241 + 22, 59, 0xffff);
-
-    // code for drawing an E
-    // vertical line
-    draw_line(246 + 22, 30, 246 + 22, 59, 0xffff);
-    draw_line(247 + 22, 30, 247 + 22, 59, 0xffff);
-    // bottom line
-    draw_line(246 + 22, 58, 262 + 22, 58, 0xffff);
-    draw_line(246 + 22, 59, 262 + 22, 59, 0xffff);
-    // top line
-    draw_line(246 + 22, 30, 262 + 22, 30, 0xffff);
-    draw_line(246 + 22, 31, 262 + 22, 31, 0xffff);
-    // middle line
-    draw_line(246 + 22, 44, 262 + 22, 44, 0xffff);
-    draw_line(246 + 22, 45, 262 + 22, 45, 0xffff);
 }
 
 
