@@ -10,9 +10,11 @@
 #define P1INPUT_HEX 0x2D;
 #define P2INPUT_HEX 0x32;
 #define LED_BASE 0xFF2000000;
+#define red 0xf800
+#define blue 0x001f
 
 bool click();
-bool start();  // title screen
+bool startScreen();  // title screen
 bool game();
 
 void plot_pixel(int x, int y, short int line_color);
@@ -28,6 +30,7 @@ short int Buffer1[240][512];  // 240 rows, 512 (320 + padding) columns
 short int Buffer2[240][512];
 
 void drawCLICKBATTLE();
+void deleteCLICKBATTLE();
 
 
 
@@ -43,7 +46,7 @@ int main(void) {
   pixel_buffer_start = *(pixel_ctrl_ptr + 1);  // points to buffer 2 back
   //*(pixel_ctrl_ptr+1) = *pixel_ctrl_ptr;
   clear_screen();  // clears buffer
-  start();
+  startScreen();
     wait_for_sync();
     pixel_buffer_start = *(pixel_ctrl_ptr + 1);//switch back to back buffer 
   volatile int* PS2_ptr = (int*)PS2_BASE;
@@ -56,35 +59,53 @@ int main(void) {
   *(PS2_ptr) = 0xFF;  // resets the input
 
   while (1) {
-    PS2_data = *(PS2_ptr);       // read the Data register in the PS/2 port
-    RVALID = PS2_data & 0x8000;  // extract the RVALID field
-    if (RVALID) {
-      keydata = PS2_data & 0xFF;
-      if (keydata == P1key) {
-        *(LED_ptr) = 0x1;  // could increment a counter or something instead
-      }
-      if (keydata == P2key) {
-        *(LED_ptr) = 0x10;  // led commands are just here as a place holder
-      }
+    while (startScreen()){
+        PS2_data = *(PS2_ptr);       // read the Data register in the PS/2 port
+        RVALID = PS2_data & 0x8000;  // extract the RVALID field
+        if (RVALID) {
+
+        }
     }
+    deleteCLICKBATTLE();
+    while (/*someting?*/1){
+
+    }    PS2_data = *(PS2_ptr);       // read the Data register in the PS/2 port
+        RVALID = PS2_data & 0x8000;  // extract the RVALID field
+        if (RVALID) {
+        keydata = PS2_data & 0xFF;
+        if (keydata == P1key) {
+            *(LED_ptr) = 0x1;  // could increment a counter or something instead
+        }
+        if (keydata == P2key) {
+            *(LED_ptr) = 0x10;  // led commands are just here as a place holder
+        }
+        }
   }
 
   return 0;
 }
 
-bool start() {
+bool startScreen() {
     // start screen message
     for (int i = 0; i < 160; i++) {
         for (int j = 0; j < 240; j++) {
-            plot_pixel(i, j, 0x001f);
+            plot_pixel(i, j, blue);
         }
     }
     for (int i = 160; i < 320; i++) {
         for (int j = 0; j < 240; j++) {
-            plot_pixel(i, j, 0xf800);
+            plot_pixel(i, j, red);
         }
     }
     drawCLICKBATTLE();
+    int PS2_data, RVALID;
+    volatile int* PS2_ptr = (int*)PS2_BASE;
+
+    PS2_data = *(PS2_ptr);       // read the Data register in the PS/2 port
+        RVALID = PS2_data & 0x8000;  // extract the RVALID field
+        if (RVALID) {
+
+        }
 }
 
 bool game() {
@@ -295,4 +316,135 @@ void drawCLICKBATTLE(){
     // middle line
     draw_line(246 + 22, 44, 262 + 22, 44, 0xffff);
     draw_line(246 + 22, 45, 262 + 22, 45, 0xffff);
+}
+
+void deleteCLICKBATTLE(){
+    // code for drawing a C
+    // top of C
+    draw_line(54, 30, 69, 30, red);
+    draw_line(54, 31, 69, 31, red);
+    // upper curve of C
+    draw_line(54, 30, 50, 38, red);
+    draw_line(54, 31, 50, 39, red);
+    // left line of C
+    draw_line(50, 38, 50, 50, red);
+    draw_line(51, 38, 51, 50, red);
+    // lower curve of C
+    draw_line(50, 50, 54, 58, red);
+    draw_line(51, 50, 54, 58, red);
+    // lower line of C
+    draw_line(54, 58, 69, 58, red);
+    draw_line(54, 59, 69, 59, red);
+
+    // code for drawing an L
+    // vertical line
+    draw_line(74, 30, 74, 59, red);
+    draw_line(75, 30, 75, 59, red);
+    // horizontal line
+    draw_line(74, 58, 90, 58, red);
+    draw_line(74, 59, 90, 59, red);
+
+    // code for drawing an I
+    draw_line(95, 30, 95, 59, red);
+    draw_line(96, 30, 96, 59, red);
+
+    // code for drawing a C
+    // top of C
+    draw_line(105, 30, 120, 30, red);
+    draw_line(105, 31, 120, 31, red);
+    // upper curve of C
+    draw_line(105, 30, 101, 38, red);
+    draw_line(105, 31, 101, 39, red);
+    // left line of C
+    draw_line(101, 38, 101, 50, red);
+    draw_line(102, 38, 102, 50, red);
+    // lower curve of C
+    draw_line(101, 50, 105, 58, red);
+    draw_line(102, 50, 105, 58, red);
+    // lower line of C
+    draw_line(105, 58, 120, 58, red);
+    draw_line(105, 59, 120, 59, red);
+
+    // code for drawing a K
+    // vertical line
+    draw_line(125, 30, 125, 59, red);
+    draw_line(126, 30, 126, 59, red);
+    // upper diagonal
+    draw_line(125, 45, 135, 30, red);
+    draw_line(126, 45, 136, 30, red);
+    // lower diagonal
+    draw_line(126, 45, 136, 59, red);
+    draw_line(125, 45, 135, 59, red);
+
+    // code for drawing a B
+    // vertical
+    draw_line(162 + 22, 30, 162 + 22, 59, blue);
+    draw_line(163 + 22, 30, 163 + 22, 59, blue);
+    // upper curve
+    draw_line(162 + 22, 30, 167 + 22, 30, blue);
+    draw_line(162 + 22, 31, 167 + 22, 31, blue);
+    draw_line(167 + 22, 30, 172 + 22, 36, blue);
+    draw_line(167 + 22, 31, 172 + 22, 37, blue);
+    draw_line(172 + 22, 36, 172 + 22, 41, blue);
+    draw_line(173 + 22, 36, 173 + 22, 41, blue);
+    draw_line(171 + 22, 41, 166 + 22, 45, blue);
+    draw_line(173 + 22, 41, 167 + 22, 45, blue);
+    // lower curve
+    draw_line(167 + 22, 45, 172 + 22, 51, blue);
+    draw_line(167 + 22, 46, 172 + 22, 52, blue);
+    draw_line(172 + 22, 51, 172 + 22, 56, blue);
+    draw_line(173 + 22, 51, 173 + 22, 56, blue);
+    draw_line(172 + 22, 56, 166 + 22, 59, blue);
+    draw_line(173 + 22, 56, 167 + 22, 59, blue);
+    draw_line(162 + 22, 58, 167 + 22, 58, blue);
+    draw_line(162 + 22, 59, 167 + 22, 59, blue);
+
+    // code for drawing an A
+    // left diagonal
+    draw_line(177 + 22, 59, 184 + 22, 30, blue);
+    draw_line(178 + 22, 59, 185 + 22, 30, blue);
+    // right diagonal
+    draw_line(191 + 22, 59, 184 + 22, 30, blue);
+    draw_line(192 + 22, 59, 185 + 22, 30, blue);
+    // middle line
+    draw_line(181 + 22, 44, 188 + 22, 44, blue);
+    draw_line(181 + 22, 45, 188 + 22, 45, blue);
+
+    // code for drawing a T
+    // horizontal
+    draw_line(195 + 22, 30, 205 + 22, 30, blue);
+    draw_line(195 + 22, 31, 205 + 22, 31, blue);
+    // vertical
+    draw_line(200 + 22, 30, 200 + 22, 59, blue);
+    draw_line(201 + 22, 30, 201 + 22, 59, blue);
+
+    // code for drawing a T
+    // horizontal
+    draw_line(210 + 22, 30, 220 + 22, 30, blue);
+    draw_line(210 + 22, 31, 220 + 22, 31, blue);
+    // vertical
+    draw_line(215 + 22, 30, 215 + 22, 59, blue);
+    draw_line(216 + 22, 30, 216 + 22, 59, blue);
+
+    // code for drawing an L
+    // vertical line
+    draw_line(225 + 22, 30, 225 + 22, 59, blue);
+    draw_line(226 + 22, 30, 226 + 22, 59, blue);
+    // horizontal line
+    draw_line(225 + 22, 58, 241 + 22, 58, blue);
+    draw_line(225 + 22, 59, 241 + 22, 59, blue);
+
+    // code for drawing an E
+    // vertical line
+    draw_line(246 + 22, 30, 246 + 22, 59, blue);
+    draw_line(247 + 22, 30, 247 + 22, 59, blue);
+    // bottom line
+    draw_line(246 + 22, 58, 262 + 22, 58, blue);
+    draw_line(246 + 22, 59, 262 + 22, 59, blue);
+    // top line
+    draw_line(246 + 22, 30, 262 + 22, 30, blue);
+    draw_line(246 + 22, 31, 262 + 22, 31, blue);
+    // middle line
+    draw_line(246 + 22, 44, 262 + 22, 44, blue);
+    draw_line(246 + 22, 45, 262 + 22, 45, blue);
 }
