@@ -3,9 +3,10 @@
 // Created 03/18/24
 
 #include <stdio.h>
-#include "click.h"
-#include "start.h"
-#include "stdbool.h"
+#include <stdbool.h>
+
+bool click();
+bool start();
 
 
 int main(void){
