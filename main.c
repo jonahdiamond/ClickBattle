@@ -41,7 +41,7 @@ void deleteReadyR();
 void drawRToStart();
 void deleteRToStart();
 void drawReadyR();
-void deleteReadyR();
+void deleteReadyB();
 
 int main(void) {
   volatile int* pixel_ctrl_ptr =
@@ -131,12 +131,12 @@ bool startScreen() {
   // start screen message
   for (int i = 0; i < 160; i++) {
     for (int j = 0; j < 240; j++) {
-      plot_pixel(i, j, blue);
+      plot_pixel(i, j, red);
     }
   }
   for (int i = 160; i < 320; i++) {
     for (int j = 0; j < 240; j++) {
-      plot_pixel(i, j, red);
+      plot_pixel(i, j, blue);
     }
   }
   drawCLICKBATTLE();
