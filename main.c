@@ -7,11 +7,14 @@
 #include <stdlib.h>
 
 #define PS2_BASE 0xFF200020;
-#define P1INPUT_HEX 0x2D;  // R
-#define P2INPUT_HEX 0x32;  // B
+#define R_INPUT_HEX 0x2D;  // R
+#define B_INPUT_HEX 0x32;  // B
 #define LED_BASE 0xFF2000000;
 #define red 0xf800
 #define blue 0x001f
+#define SCREENSTART 0
+#define SCREENEND 319
+#define CLICK_INCREMENT 32
 
 bool click();
 bool startScreen();  // title screen
@@ -55,73 +58,115 @@ int main(void) {
   pixel_buffer_start = *(pixel_ctrl_ptr + 1);  // points to buffer 2 back
   //*(pixel_ctrl_ptr+1) = *pixel_ctrl_ptr;
   clear_screen();  // clears buffer
-  startScreen();
   wait_for_sync();
   pixel_buffer_start = *(pixel_ctrl_ptr + 1);  // switch back to back buffer
   volatile int* PS2_ptr = (int*)PS2_BASE;
   volatile int* LED_ptr = (int*)LED_BASE;
 
-  int P1key = P1INPUT_HEX;
-  int P2key = P2INPUT_HEX;
+  int Rkey = R_INPUT_HEX;
+  int Bkey = B_INPUT_HEX;
+  
   int PS2_data, RVALID;
   int keydata = 0;
   *(PS2_ptr) = 0xFF;  // resets the input
 
-  gameLoc = 0;
-
   while (1) {
+    bool Rwon = false;
+    //draw all loading screen messages
+    startScreen();
+    drawBToStart();
+    drawRToStart();
+    //switch buffers
+    wait_for_sync();
+    pixel_buffer_start = *(pixel_ctrl_ptr + 1);
+    //flags for whether to display loading messages for r or b or to display ready message
     bool readyB = false;
     bool readyR = false;
-    gameLoc = 0;
+    gameLoc = (SCREENSTART+SCREENEND)/2; //middle of the screen
+    //loop for players readying
     while (!readyB || !readyR) {
       PS2_data = *(PS2_ptr);       // read the Data register in the PS/2 port
       RVALID = PS2_data & 0x8000;  // extract the RVALID field
-      if (RVALID) {
-        if (keydata == P1key) {
-          *(LED_ptr) = 0x1;  // could increment a counter or something instead
+      if (RVALID) {        
+        keydata = PS2_data & 0xFF; //extract which key clicked
+        if (keydata == Rkey && !readyR && readyB) {
+          // *(LED_ptr) = 0x1;  // could increment a counter or something instead
           readyR = true;
+          deleteRToStart();
+          deleteReadyB();
         }
-        if (keydata == P2key) {
+        else if (keydata == Bkey && !readyB && readyR) {
           *(LED_ptr) = 0x10;  // led commands are just here as a place holder
           readyB = true;
+          deleteBToStart();
+          deleteReadyR();
         }
-        keydata = PS2_data & 0xFF;
-      }
-      if (!readyB) {
-        drawBToStart();
-      } else {
-        deleteBToStart();
-        drawReadyB();
-      }
-      if (!readyR) {
-        drawRToStart();
-      } else {
-        deleteRToStart();
-        drawReadyR();
+        else if (keydata == Rkey && !readyR){
+          readyR = true;
+          deleteRToStart();
+          drawReadyR();
+        }
+        else if (keydata == Bkey && !readyB){
+          readyB = true;
+          deleteBToStart();
+          drawReadyB();
+        }
+        *(PS2_ptr) = 0xFF;  // resets the input
       }
       wait_for_sync();
       pixel_buffer_start = *(pixel_ctrl_ptr + 1);  // switch back to back buffer
     }
+    //potentially show 3 2 1 go message with internal clock
+    //delete start screen messages
     deleteCLICKBATTLE();
-    deleteReadyB();
-    deleteReadyR();
     wait_for_sync();
     pixel_buffer_start = *(pixel_ctrl_ptr + 1);  // switch back to back buffer
-    while (/*someting?*/ 1) {
+    //actual gameplay loop - in game if gameLoc is in bounds of screen, otherwise game over
+    while (gameLoc > SCREENSTART && gameLoc < SCREENEND) {
       PS2_data = *(PS2_ptr);       // read the Data register in the PS/2 port
       RVALID = PS2_data & 0x8000;  // extract the RVALID field
       if (RVALID) {
         keydata = PS2_data & 0xFF;
-        if (keydata == P1key) {
-          *(LED_ptr) = 0x1;  // could increment a counter or something instead
+        if (keydata == Rkey) {
+          // *(LED_ptr) = 0x1;  // could increment a counter or something instead
+          for (int newPixel = gameLoc + CLICK_INCREMENT; newPixel < gameLoc; newPixel++){
+            for (int y = 0; y < 240; y++){
+              plot_pixel(newPixel, y, red);
+            }
+          }
+          gameLoc+=CLICK_INCREMENT;
         }
-        if (keydata == P2key) {
-          *(LED_ptr) = 0x10;  // led commands are just here as a place holder
+        if (keydata == Bkey) {
+          // *(LED_ptr) = 0x10;  // led commands are just here as a place holder
+          for (int newPixel = gameLoc - CLICK_INCREMENT; newPixel < gameLoc; newPixel++){
+            for (int y = 0; y < 240; y++){
+              plot_pixel(newPixel, y, blue);
+            }
+          }
+          gameLoc-=CLICK_INCREMENT;
         }
+        *(PS2_ptr) = 0xFF;  // resets the input
+        wait_for_sync();
+        pixel_buffer_start = *(pixel_ctrl_ptr + 1);
       }
       wait_for_sync();
       pixel_buffer_start = *(pixel_ctrl_ptr + 1);  // switch back to back buffer
     }
+    //post game message of who won
+    if (gameLoc <= SCREENSTART){
+      Rwon = true;
+    } else if (gameLoc >= SCREENEND){
+      Rwon = false;
+    } else printf("Error\n");
+    //display R WINS!!! / B WINS!!! message based on Rwon boolean value and internal timer
+    if (Rwon){
+      //display R WINS!!!
+    } else {
+      //display B WINS!!!
+    }
+    wait_for_sync();
+    pixel_buffer_start = *(pixel_ctrl_ptr+1);
+    //poll for space bar to play again
   }
 
   return 0;
