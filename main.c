@@ -7,8 +7,8 @@
 #include <stdlib.h>
 
 #define PS2_BASE 0xFF200020;
-#define P1INPUT_HEX 0x2D; //R
-#define P2INPUT_HEX 0x32; //B
+#define P1INPUT_HEX 0x2D;  // R
+#define P2INPUT_HEX 0x32;  // B
 #define LED_BASE 0xFF2000000;
 #define red 0xf800
 #define blue 0x001f
@@ -70,58 +70,58 @@ int main(void) {
   gameLoc = 0;
 
   while (1) {
-	bool readyB = false;
-	bool readyR = false;
-	gameLoc = 0;
+    bool readyB = false;
+    bool readyR = false;
+    gameLoc = 0;
     while (!readyB || !readyR) {
-		PS2_data = *(PS2_ptr);       // read the Data register in the PS/2 port
-      	RVALID = PS2_data & 0x8000;  // extract the RVALID field
-      	if (RVALID) {
-			if (keydata == P1key) {
-				*(LED_ptr) = 0x1;  // could increment a counter or something instead
-				readyR = true;
-			}
-			if (keydata == P2key) {
-				*(LED_ptr) = 0x10;  // led commands are just here as a place holder
-				readyB = true;
-			}
-			keydata = PS2_data & 0xFF;
-		}
-		if (!readyB){
-			drawBToStart();
-		} else {
-			deleteBToStart();
-			drawReadyB();
-		}
-		if (!readyR){
-			drawRToStart();
-		} else{
-			deleteRToStart();
-			drawReadyR();
-		}
-		wait_for_sync();
-		pixel_buffer_start = *(pixel_ctrl_ptr + 1);//switch back to back buffer
+      PS2_data = *(PS2_ptr);       // read the Data register in the PS/2 port
+      RVALID = PS2_data & 0x8000;  // extract the RVALID field
+      if (RVALID) {
+        if (keydata == P1key) {
+          *(LED_ptr) = 0x1;  // could increment a counter or something instead
+          readyR = true;
+        }
+        if (keydata == P2key) {
+          *(LED_ptr) = 0x10;  // led commands are just here as a place holder
+          readyB = true;
+        }
+        keydata = PS2_data & 0xFF;
+      }
+      if (!readyB) {
+        drawBToStart();
+      } else {
+        deleteBToStart();
+        drawReadyB();
+      }
+      if (!readyR) {
+        drawRToStart();
+      } else {
+        deleteRToStart();
+        drawReadyR();
+      }
+      wait_for_sync();
+      pixel_buffer_start = *(pixel_ctrl_ptr + 1);  // switch back to back buffer
     }
     deleteCLICKBATTLE();
-	deleteReadyB();
-	deleteReadyR();
-	wait_for_sync();
-	pixel_buffer_start = *(pixel_ctrl_ptr + 1);//switch back to back buffer
+    deleteReadyB();
+    deleteReadyR();
+    wait_for_sync();
+    pixel_buffer_start = *(pixel_ctrl_ptr + 1);  // switch back to back buffer
     while (/*someting?*/ 1) {
-		PS2_data = *(PS2_ptr);       // read the Data register in the PS/2 port
-		RVALID = PS2_data & 0x8000;  // extract the RVALID field
-		if (RVALID) {
-		keydata = PS2_data & 0xFF;
-		if (keydata == P1key) {
-			*(LED_ptr) = 0x1;  // could increment a counter or something instead
-		}
-		if (keydata == P2key) {
-			*(LED_ptr) = 0x10;  // led commands are just here as a place holder
-		}
-		}
-		wait_for_sync();
-		pixel_buffer_start = *(pixel_ctrl_ptr + 1);//switch back to back buffer
-	}
+      PS2_data = *(PS2_ptr);       // read the Data register in the PS/2 port
+      RVALID = PS2_data & 0x8000;  // extract the RVALID field
+      if (RVALID) {
+        keydata = PS2_data & 0xFF;
+        if (keydata == P1key) {
+          *(LED_ptr) = 0x1;  // could increment a counter or something instead
+        }
+        if (keydata == P2key) {
+          *(LED_ptr) = 0x10;  // led commands are just here as a place holder
+        }
+      }
+      wait_for_sync();
+      pixel_buffer_start = *(pixel_ctrl_ptr + 1);  // switch back to back buffer
+    }
   }
 
   return 0;
@@ -489,15 +489,11 @@ void deleteCLICKBATTLE() {
   draw_line(246 + 22, 45, 262 + 22, 45, blue);
 }
 
-void drawBToStart(){
-
-}
-void deleteBToStart(){
-
-}
-void drawReadyB(){}
-void deleteReadyB(){}
-void drawRToStart(){}
-void deleteRToStart(){}
-void drawReadyR(){}
-void deleteReadyR(){}
+void drawBToStart() {}
+void deleteBToStart() {}
+void drawReadyB() {}
+void deleteReadyB() {}
+void drawRToStart() {}
+void deleteRToStart() {}
+void drawReadyR() {}
+void deleteReadyR() {}
