@@ -519,19 +519,17 @@ const short int
                    0xFFFF, 0xFFFF, 0xFFFF, 0x001F, 0x001F, 0xFFFF};
 
 int main(void) {
-  volatile int* pixel_ctrl_ptr =
-      (int*)0xFF203020;  // obtains the pointer to the vga controller
-  *(pixel_ctrl_ptr + 1) =
-      (int)&Buffer1;  // set the back buffer to the address of the buffer array
-  wait_for_sync();    // waits for vsync
-  pixel_buffer_start = *pixel_ctrl_ptr;        // points to buffer 1
-  clear_screen();                              // clears buffer
-  *(pixel_ctrl_ptr + 1) = (int)&Buffer2;       // sets the back buffer to buffer
-  pixel_buffer_start = *(pixel_ctrl_ptr + 1);  // points to buffer 2 back
-  //*(pixel_ctrl_ptr+1) = *pixel_ctrl_ptr;
-  clear_screen();  // clears buffer
-  wait_for_sync();
-  pixel_buffer_start = *(pixel_ctrl_ptr + 1);  // switch back to back buffer
+  volatile int* pixel_ctrl_ptr = (int*)0xFF203020;
+  *(pixel_ctrl_ptr + 1) = (int)&Buffer1;
+  wait_for_sync();  // waits for vsync
+  pixel_buffer_start = *(pixel_ctrl_ptr + 1);
+  clear_screen();
+  *(pixel_ctrl_ptr + 1) = (int)&Buffer2;
+  pixel_buffer_start = *(pixel_ctrl_ptr + 1);  // we draw on the back buffer
+  clear_screen();  // pixel_buffer_start points to the pixel buffer
+
+  // wait_for_sync();
+  // pixel_buffer_start = *(pixel_ctrl_ptr + 1);  // switch back to back buffer
   volatile int* PS2_ptr = (int*)PS2_BASE;
   volatile int* LED_ptr = (int*)LED_BASE;
 
@@ -554,8 +552,8 @@ int main(void) {
     drawBToStart();
     drawRToStart();
     // switch buffers
-    wait_for_sync();
-    pixel_buffer_start = *(pixel_ctrl_ptr + 1);
+    // wait_for_sync();
+    // pixel_buffer_start = *(pixel_ctrl_ptr + 1);
     // flags for whether to display loading messages for r or b or to display
     // ready message
     bool readyB = false;
@@ -567,25 +565,27 @@ int main(void) {
       RVALID = PS2_data & 0x8000;  // extract the RVALID field
       if (RVALID) {
         keydata = PS2_data & 0xFF;  // extract which key clicked
-        if (keydata == Rkey && !readyR && readyB) {
-          // *(LED_ptr) = 0x1;  // could increment a counter or something
-          // instead
-          readyR = true;
-          deleteRToStart();
-          deleteReadyB();
-        } else if (keydata == Bkey && !readyB && readyR) {
-          *(LED_ptr) = 0x10;  // led commands are just here as a place holder
-          readyB = true;
-          deleteBToStart();
-          deleteReadyR();
-        } else if (keydata == Rkey && !readyR) {
-          readyR = true;
-          deleteRToStart();
-          drawReadyR();
-        } else if (keydata == Bkey && !readyB) {
-          readyB = true;
-          deleteBToStart();
-          drawReadyB();
+        if (keydata == Rkey) {
+          if (!readyR && readyB) {
+            readyR = true;
+            deleteRToStart();
+            deleteReadyB();
+          } else if (!readyR && !readyB) {
+            readyR = true;
+            deleteRToStart();
+            drawReadyR();
+          }
+        }
+        if (keydata == Bkey) {
+          if (!readyB && readyR) {
+            readyB = true;
+            deleteBToStart();
+            deleteReadyR();
+          } else if (!readyB && !readyR) {
+            readyB = true;
+            deleteBToStart();
+            drawReadyB();
+          }
         }
         *(PS2_ptr) = 0xFF;  // resets the input
       }
@@ -1053,13 +1053,30 @@ void deleteCLICKBATTLE() {
 }
 */
 
-void drawClickBattle() {
+void drawCLICKBATTLE() {
   int counter = 0;
   for (int j = 0; j < 24; j++) {
     for (int i = 0; i < 46; i++) {
       // short int value = ((pcsmall_map[counter]&0xFF)<<8) |
       // ((pcsmall_map[counter]&0xFF00)>>8);
       short int value = CLICKBATTLE[counter];
+      plot_pixel(i + 137, j + 50, value);
+      counter++;
+    }
+  }
+}
+void deleteCLICKBATTLE() {
+  int counter = 0;
+  for (int j = 0; j < 24; j++) {
+    for (int i = 0; i < 46; i++) {
+      // short int value = ((pcsmall_map[counter]&0xFF)<<8) |
+      // ((pcsmall_map[counter]&0xFF00)>>8);
+      // short int value = CLICKBATTLE[counter];
+      short int value;
+      if (i < 23)
+        value = red;
+      else
+        value = blue;
       plot_pixel(i + 137, j + 50, value);
       counter++;
     }
