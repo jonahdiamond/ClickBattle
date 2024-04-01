@@ -8,13 +8,16 @@
 #include <stdlib.h>
 
 #define PS2_BASE 0xFF200020;
-#define R_INPUT_HEX 0x2D;  // R
-#define B_INPUT_HEX 0x32;  // B
+#define R_INPUT_HEX 0x2D;      // R
+#define B_INPUT_HEX 0x32;      // B
+#define SPACE_INPUT_HEX 0x29;  // space
 #define LED_BASE 0xFF2000000;
 #define red 0xf800
 #define blue 0x001f
-#define SCREENSTART 0
-#define SCREENEND 319
+#define SCREENLEFT 0
+#define SCREENRIGHT 319
+#define SCREENTOP 0
+#define SCREENBOTTOM 239
 #define CLICK_INCREMENT 32
 
 bool click();
@@ -50,6 +53,9 @@ void deleteReadyB();
 void drawBWins();
 void drawRWins();
 
+void drawSpaceToContinue();
+void deleteSpaceToContinue();
+
 const short int CLICKBATTLE[1104];
 const short int PRESSRTOREADYr[360];
 const short int PRESSBTOREADYb[360];
@@ -57,6 +63,7 @@ const short int READYr[140];
 const short int READYb[140];
 const short int RWINSr[140];
 const short int BWINSb[140];
+const short int pressSpaceToContinuerb[530];
 int main(void) {
   volatile int* pixel_ctrl_ptr = (int*)0xFF203020;
   *(pixel_ctrl_ptr + 1) = (int)&Buffer1;
@@ -76,6 +83,7 @@ int main(void) {
 
   int Rkey = R_INPUT_HEX;
   int Bkey = B_INPUT_HEX;
+  int space = SPACE_INPUT_HEX;
 
   int xWins = 146, yWins = 120, dx, dy;
 
@@ -99,10 +107,11 @@ int main(void) {
     // ready message
     bool readyB = false;
     bool readyR = false;
-    gameLoc = (SCREENSTART + SCREENEND) / 2;  // middle of the screen
+    gameLoc = (SCREENLEFT + SCREENRIGHT) / 2;  // middle of the screen
     // loop for players readying
     while (!readyB || !readyR) {
-      //pixel_buffer_start = *(pixel_ctrl_ptr + 1);  // switch back to back buffer
+      // pixel_buffer_start = *(pixel_ctrl_ptr + 1);  // switch back to back
+      // buffer
       PS2_data = *(PS2_ptr);       // read the Data register in the PS/2 port
       RVALID = PS2_data & 0x8000;  // extract the RVALID field
       if (RVALID) {
@@ -131,10 +140,12 @@ int main(void) {
         }
         *(PS2_ptr) = 0xFF;  // resets the input
         // wait_for_sync();
-        // pixel_buffer_start = *(pixel_ctrl_ptr + 1);  // switch back to back buffer
+        // pixel_buffer_start = *(pixel_ctrl_ptr + 1);  // switch back to back
+        // buffer
       }
       // wait_for_sync();
-      // pixel_buffer_start = *(pixel_ctrl_ptr + 1);  // switch back to back buffer
+      // pixel_buffer_start = *(pixel_ctrl_ptr + 1);  // switch back to back
+      // buffer
     }
     // potentially show 3 2 1 go message with internal clock
     // delete start screen messages
@@ -143,7 +154,7 @@ int main(void) {
     pixel_buffer_start = *(pixel_ctrl_ptr + 1);  // switch back to back buffer
     // actual gameplay loop - in game if gameLoc is in bounds of screen,
     // otherwise game over
-    while (gameLoc > SCREENSTART && gameLoc < SCREENEND) {
+    while (gameLoc > SCREENLEFT && gameLoc < SCREENRIGHT) {
       PS2_data = *(PS2_ptr);       // read the Data register in the PS/2 port
       RVALID = PS2_data & 0x8000;  // extract the RVALID field
       if (RVALID) {
@@ -177,40 +188,68 @@ int main(void) {
       pixel_buffer_start = *(pixel_ctrl_ptr + 1);  // switch back to back buffer
     }
     // post game message of who won
-    if (gameLoc <= SCREENSTART) {
+    if (gameLoc <= SCREENLEFT) {
       Rwon = true;
-    } else if (gameLoc >= SCREENEND) {
+    } else if (gameLoc >= SCREENRIGHT) {
       Rwon = false;
     } else
       printf("Error\n");
     // display R WINS!!! / B WINS!!! message based on Rwon boolean value and
     // internal timer
+
+    bool nextGame = false;
     if (Rwon) {
       // display R WINS!!!
       dx = ((rand() % 2) * 2) - 1;
       dy = ((rand() % 2) * 2) - 1;
-      while (/*something????*/ 1) {
+      while (!nextGame) {
         drawRWins(xWins, yWins, dx, dy);
         xWins += dx;
         yWins += dy;
-        if ((xWins >= SCREENEND - 28) || (xWins <= 0)) dx *= -1;
+        if ((xWins >= SCREENRIGHT - 28) || (xWins <= 0)) dx *= -1;
         if ((yWins >= 240 - 5) || (yWins <= 0)) dy *= -1;
+        // if ((xWins <= SCREENRIGHT - 106 - 28) && (xWins >= 106 - 28) && (yWins >= SCREENBOTTOM - 5)) dx *= -1;
+        // if ((yWins >= SCREENBOTTOM - 5 - 5) && ((xWins >= 106 - 28) && (xWins <= SCREENRIGHT - 106))) dy *= -1;
+        // if ((xWins >= SCREENRIGHT - 106) && (yWins >= SCREENBOTTOM - 5 - 5) && (xWins >))
+        if (xWins >= 106 -28 && xWins <= SCREENRIGHT - 106 && yWins >= SCREENBOTTOM - 10) dy *= -1;
+        if (yWins >= SCREENBOTTOM - 10 && (xWins == 106 - 28 || xWins == SCREENRIGHT - 106)) dx *= -1;
         wait_for_sync();
         pixel_buffer_start = *(pixel_ctrl_ptr + 1);
+        PS2_data = *(PS2_ptr);       // read the Data register in the PS/2 port
+        RVALID = PS2_data & 0x8000;  // extract the RVALID field
+        if (RVALID) {
+          keydata = PS2_data & 0xFF;
+          if (keydata == space) {
+            nextGame = true;
+          }
+        }
       }
 
     } else {
       // display B WINS!!!
       dx = ((rand() % 2) * 2) - 1;
       dy = ((rand() % 2) * 2) - 1;
-      while (/*something????*/ 1) {
+      while (!nextGame) {
         drawBWins(xWins, yWins, dx, dy);
         xWins += dx;
         yWins += dy;
-        if ((xWins >= SCREENEND - 28) || (xWins <= 0)) dx *= -1;
+        if ((xWins >= SCREENRIGHT - 28) || (xWins <= 0)) dx *= -1;
         if ((yWins >= 240 - 5) || (yWins <= 0)) dy *= -1;
+        // if ((xWins <= SCREENRIGHT - 106 - 28) && (xWins >= 106 - 28) && (yWins >= SCREENBOTTOM - 5)) dx *= -1;
+        // if ((yWins >= SCREENBOTTOM - 5 - 5) && ((xWins >= 106 - 28) && (xWins <= SCREENRIGHT - 106))) dy *= -1;
+        // if ((xWins >= SCREENRIGHT - 106) && (yWins >= SCREENBOTTOM - 5 - 5) && (xWins >))
+        if (xWins >= 106 -28 && xWins <= SCREENRIGHT - 106 && yWins >= SCREENBOTTOM - 10) dy *= -1;
+        if (yWins >= SCREENBOTTOM - 10 && (xWins == 106 - 28 || xWins == SCREENRIGHT - 106)) dx *= -1;
         wait_for_sync();
         pixel_buffer_start = *(pixel_ctrl_ptr + 1);
+        PS2_data = *(PS2_ptr);       // read the Data register in the PS/2 port
+        RVALID = PS2_data & 0x8000;  // extract the RVALID field
+        if (RVALID) {
+          keydata = PS2_data & 0xFF;
+          if (keydata == space) {
+            nextGame = true;
+          }
+        }
       }
     }
     wait_for_sync();
@@ -729,7 +768,32 @@ void drawRWins(int xWins, int yWins, int dx, int dy) {
   }
 }
 
+void drawSpaceToContinue() {
+  int counter = 0;
+  for (int j = 0; j < 5; j++) {
+    for (int i = 0; i < 106; i++) {
+      short int value = pressSpaceToContinuerb[counter];
+      plot_pixel(i + 107, j + 234, value);
+      counter++;
+    }
+  }
+}
 
+void deleteSpaceToContinue() {
+  int counter = 0;
+  for (int j = 0; j < 5; j++) {
+    for (int i = 0; i < 106; i++) {
+      short int value;
+      if (i < 53){
+        value = red;
+      } else {
+        value = blue;
+      }
+      plot_pixel(i + 107, j + 234, value);
+      counter++;
+    }
+  }
+}
 
 const short int
     CLICKBATTLE[1104] =
@@ -1199,3 +1263,106 @@ const short int
                    0x001F, 0xFFFF, 0x001F, 0x001F, 0xFFFF, 0x001F,
                    0xFFFF, 0xFFFF, 0xFFFF, 0x001F, 0x001F, 0xFFFF};
 
+const short int
+    pressSpaceToContinuerb[530] =
+        {
+            0xFFFF, 0xFFFF, 0xFFFF, 0xF800, 0xF800, 0xFFFF,
+            0xFFFF, 0xFFFF, 0xF800, 0xF800, 0xFFFF, 0xFFFF,
+            0xFFFF, 0xFFFF, 0xF800, 0xF800,  // 0x0010 (16) pixels
+            0xFFFF, 0xFFFF, 0xFFFF, 0xF800, 0xF800, 0xFFFF,
+            0xFFFF, 0xFFFF, 0xF800, 0xF800, 0xF800, 0xF800,
+            0xFFFF, 0xFFFF, 0xFFFF, 0xF800,  // 0x0020 (32) pixels
+            0xFFFF, 0xFFFF, 0xFFFF, 0xF800, 0xF800, 0xF800,
+            0xFFFF, 0xFFFF, 0xF800, 0xF800, 0xF800, 0xFFFF,
+            0xFFFF, 0xF800, 0xF800, 0xFFFF,  // 0x0030 (48) pixels
+            0xFFFF, 0xFFFF, 0xFFFF, 0xF800, 0xF800, 0x001F,
+            0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0x001F,
+            0x001F, 0xFFFF, 0xFFFF, 0x001F,  // 0x0040 (64) pixels
+            0x001F, 0x001F, 0x001F, 0x001F, 0xFFFF, 0xFFFF,
+            0x001F, 0x001F, 0x001F, 0xFFFF, 0xFFFF, 0x001F,
+            0x001F, 0xFFFF, 0x001F, 0x001F,  // 0x0050 (80) pixels
+            0xFFFF, 0x001F, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF,
+            0xFFFF, 0x001F, 0xFFFF, 0xFFFF, 0xFFFF, 0x001F,
+            0xFFFF, 0x001F, 0x001F, 0xFFFF,  // 0x0060 (96) pixels
+            0x001F, 0xFFFF, 0x001F, 0x001F, 0xFFFF, 0x001F,
+            0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xF800,
+            0xF800, 0xFFFF, 0xF800, 0xFFFF,  // 0x0070 (112) pixels
+            0xF800, 0xF800, 0xFFFF, 0xF800, 0xFFFF, 0xF800,
+            0xF800, 0xF800, 0xF800, 0xFFFF, 0xF800, 0xF800,
+            0xF800, 0xF800, 0xFFFF, 0xF800,  // 0x0080 (128) pixels
+            0xF800, 0xF800, 0xF800, 0xF800, 0xF800, 0xFFFF,
+            0xF800, 0xF800, 0xF800, 0xF800, 0xFFFF, 0xF800,
+            0xF800, 0xFFFF, 0xF800, 0xFFFF,  // 0x0090 (144) pixels
+            0xF800, 0xF800, 0xFFFF, 0xF800, 0xFFFF, 0xF800,
+            0xF800, 0xFFFF, 0xF800, 0xFFFF, 0xF800, 0xF800,
+            0xF800, 0xF800, 0xF800, 0x001F,  // 0x00A0 (160) pixels
+            0x001F, 0x001F, 0xFFFF, 0x001F, 0x001F, 0x001F,
+            0xFFFF, 0x001F, 0x001F, 0xFFFF, 0x001F, 0x001F,
+            0x001F, 0xFFFF, 0x001F, 0x001F,  // 0x00B0 (176) pixels
+            0xFFFF, 0x001F, 0xFFFF, 0x001F, 0x001F, 0xFFFF,
+            0x001F, 0xFFFF, 0xFFFF, 0x001F, 0xFFFF, 0x001F,
+            0x001F, 0x001F, 0xFFFF, 0x001F,  // 0x00C0 (192) pixels
+            0x001F, 0x001F, 0x001F, 0xFFFF, 0x001F, 0x001F,
+            0xFFFF, 0xFFFF, 0x001F, 0xFFFF, 0x001F, 0xFFFF,
+            0x001F, 0x001F, 0xFFFF, 0x001F,  // 0x00D0 (208) pixels
+            0xFFFF, 0x001F, 0x001F, 0x001F, 0xFFFF, 0xFFFF,
+            0xFFFF, 0xF800, 0xF800, 0xFFFF, 0xFFFF, 0xFFFF,
+            0xF800, 0xF800, 0xFFFF, 0xFFFF,  // 0x00E0 (224) pixels
+            0xFFFF, 0xF800, 0xF800, 0xF800, 0xFFFF, 0xFFFF,
+            0xF800, 0xF800, 0xF800, 0xFFFF, 0xFFFF, 0xF800,
+            0xF800, 0xF800, 0xF800, 0xF800,  // 0x00F0 (240) pixels
+            0xFFFF, 0xFFFF, 0xF800, 0xF800, 0xFFFF, 0xFFFF,
+            0xFFFF, 0xF800, 0xF800, 0xFFFF, 0xFFFF, 0xFFFF,
+            0xFFFF, 0xF800, 0xFFFF, 0xF800,  // 0x0100 (256) pixels
+            0xF800, 0xF800, 0xF800, 0xFFFF, 0xFFFF, 0xFFFF,
+            0xF800, 0xF800, 0xF800, 0x001F, 0x001F, 0x001F,
+            0xFFFF, 0x001F, 0x001F, 0x001F,  // 0x0110 (272) pixels
+            0xFFFF, 0x001F, 0x001F, 0xFFFF, 0x001F, 0x001F,
+            0x001F, 0xFFFF, 0x001F, 0x001F, 0x001F, 0x001F,
+            0xFFFF, 0x001F, 0x001F, 0xFFFF,  // 0x0120 (288) pixels
+            0x001F, 0xFFFF, 0x001F, 0xFFFF, 0xFFFF, 0x001F,
+            0x001F, 0x001F, 0xFFFF, 0x001F, 0x001F, 0x001F,
+            0x001F, 0xFFFF, 0x001F, 0x001F,  // 0x0130 (304) pixels
+            0xFFFF, 0x001F, 0xFFFF, 0xFFFF, 0x001F, 0xFFFF,
+            0x001F, 0x001F, 0xFFFF, 0x001F, 0xFFFF, 0xFFFF,
+            0xFFFF, 0x001F, 0xFFFF, 0xF800,  // 0x0140 (320) pixels
+            0xF800, 0xF800, 0xF800, 0xFFFF, 0xF800, 0xFFFF,
+            0xF800, 0xF800, 0xFFFF, 0xF800, 0xF800, 0xF800,
+            0xF800, 0xF800, 0xF800, 0xF800,  // 0x0150 (336) pixels
+            0xFFFF, 0xF800, 0xF800, 0xF800, 0xF800, 0xFFFF,
+            0xF800, 0xF800, 0xF800, 0xF800, 0xF800, 0xF800,
+            0xFFFF, 0xF800, 0xFFFF, 0xF800,  // 0x0160 (352) pixels
+            0xF800, 0xF800, 0xF800, 0xFFFF, 0xF800, 0xF800,
+            0xFFFF, 0xF800, 0xFFFF, 0xF800, 0xF800, 0xFFFF,
+            0xF800, 0xFFFF, 0xF800, 0xF800,  // 0x0170 (368) pixels
+            0xF800, 0xF800, 0xF800, 0x001F, 0x001F, 0x001F,
+            0xFFFF, 0x001F, 0x001F, 0x001F, 0xFFFF, 0x001F,
+            0x001F, 0xFFFF, 0x001F, 0x001F,  // 0x0180 (384) pixels
+            0x001F, 0xFFFF, 0x001F, 0x001F, 0xFFFF, 0x001F,
+            0xFFFF, 0x001F, 0x001F, 0xFFFF, 0x001F, 0xFFFF,
+            0x001F, 0x001F, 0xFFFF, 0x001F,  // 0x0190 (400) pixels
+            0x001F, 0x001F, 0xFFFF, 0x001F, 0x001F, 0x001F,
+            0x001F, 0xFFFF, 0x001F, 0x001F, 0xFFFF, 0x001F,
+            0x001F, 0xFFFF, 0x001F, 0xFFFF,  // 0x01A0 (416) pixels
+            0x001F, 0x001F, 0xFFFF, 0x001F, 0xFFFF, 0x001F,
+            0x001F, 0x001F, 0xFFFF, 0xF800, 0xF800, 0xF800,
+            0xF800, 0xFFFF, 0xF800, 0xF800,  // 0x01B0 (432) pixels
+            0xFFFF, 0xF800, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF,
+            0xF800, 0xFFFF, 0xFFFF, 0xFFFF, 0xF800, 0xF800,
+            0xFFFF, 0xFFFF, 0xFFFF, 0xF800,  // 0x01C0 (448) pixels
+            0xF800, 0xF800, 0xF800, 0xFFFF, 0xFFFF, 0xFFFF,
+            0xF800, 0xF800, 0xFFFF, 0xF800, 0xF800, 0xF800,
+            0xF800, 0xFFFF, 0xF800, 0xF800,  // 0x01D0 (464) pixels
+            0xFFFF, 0xF800, 0xF800, 0xFFFF, 0xFFFF, 0xF800,
+            0xF800, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xF800,
+            0xF800, 0x001F, 0x001F, 0x001F,  // 0x01E0 (480) pixels
+            0xFFFF, 0x001F, 0x001F, 0x001F, 0x001F, 0xFFFF,
+            0xFFFF, 0x001F, 0x001F, 0x001F, 0x001F, 0x001F,
+            0xFFFF, 0xFFFF, 0x001F, 0x001F,  // 0x01F0 (496) pixels
+            0x001F, 0xFFFF, 0xFFFF, 0x001F, 0x001F, 0xFFFF,
+            0x001F, 0x001F, 0xFFFF, 0x001F, 0x001F, 0x001F,
+            0xFFFF, 0x001F, 0x001F, 0x001F,  // 0x0200 (512) pixels
+            0xFFFF, 0xFFFF, 0xFFFF, 0x001F, 0xFFFF, 0x001F,
+            0x001F, 0xFFFF, 0x001F, 0x001F, 0xFFFF, 0xFFFF,
+            0x001F, 0x001F, 0xFFFF, 0xFFFF,  // 0x0210 (528) pixels
+            0xFFFF, 0xFFFF};
