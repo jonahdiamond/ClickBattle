@@ -203,6 +203,7 @@ int main(void) {
       dx = ((rand() % 2) * 2) - 1;
       dy = ((rand() % 2) * 2) - 1;
       while (!nextGame) {
+        drawSpaceToContinue();
         drawRWins(xWins, yWins, dx, dy);
         xWins += dx;
         yWins += dy;
@@ -230,6 +231,7 @@ int main(void) {
       dx = ((rand() % 2) * 2) - 1;
       dy = ((rand() % 2) * 2) - 1;
       while (!nextGame) {
+        drawSpaceToContinue();
         drawBWins(xWins, yWins, dx, dy);
         xWins += dx;
         yWins += dy;
