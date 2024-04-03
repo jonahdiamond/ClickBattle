@@ -7,9 +7,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define PS2_BASE 0xFF200020;
+#define PS2_BASE 0xFF200100;
 #define R_INPUT_HEX 0x2D;      // R
 #define B_INPUT_HEX 0x32;      // B
+#define W_INPUT_HEX 0x1D;      // W
+#define A_INPUT_HEX 0x1C;      // A
+#define S_INPUT_HEX 0x1B;      // S
+#define D_INPUT_HEX 0x23;      // D
+#define BREAK_INPUT_HEX 0xF0;  // break code
 #define SPACE_INPUT_HEX 0x29;  // space
 #define LED_BASE 0xFF2000000;
 #define red 0xf800
@@ -83,6 +88,7 @@ int main(void) {
 
   int Rkey = R_INPUT_HEX;
   int Bkey = B_INPUT_HEX;
+  int key_break = BREAK_INPUT_HEX;
   int space = SPACE_INPUT_HEX;
 
   int xWins = 146, yWins = 120, dx, dy;
@@ -152,38 +158,45 @@ int main(void) {
     deleteCLICKBATTLE();
     wait_for_sync();
     pixel_buffer_start = *(pixel_ctrl_ptr + 1);  // switch back to back buffer
+
     // actual gameplay loop - in game if gameLoc is in bounds of screen,
     // otherwise game over
+
+    bool key_released_break = false;
+    int key_released;
+    int old_gameLoc = gameLoc;
+    short int colour = 0;
+    short int b_colour = 0xf2ff;
+    short int d_colour = 0x3596;
+
     while (gameLoc > SCREENLEFT && gameLoc < SCREENRIGHT) {
       PS2_data = *(PS2_ptr);       // read the Data register in the PS/2 port
       RVALID = PS2_data & 0x8000;  // extract the RVALID field
       if (RVALID) {
         keydata = PS2_data & 0xFF;
-        if (keydata == Rkey) {
-          // *(LED_ptr) = 0x1;  // could increment a counter or something
-          // instead
-          for (int newPixel = gameLoc + CLICK_INCREMENT; newPixel < gameLoc;
-               newPixel++) {
-            for (int y = 0; y < 240; y++) {
-              plot_pixel(newPixel, y, red);
-            }
-          }
-          gameLoc += CLICK_INCREMENT;
+        if (key_released_break == true) {
+          key_released = keydata;
+          key_released_break = false;
         }
-        if (keydata == Bkey) {
-          // *(LED_ptr) = 0x10;  // led commands are just here as a place holder
-          for (int newPixel = gameLoc - CLICK_INCREMENT; newPixel < gameLoc;
-               newPixel++) {
-            for (int y = 0; y < 240; y++) {
-              plot_pixel(newPixel, y, blue);
-            }
-          }
-          gameLoc -= CLICK_INCREMENT;
+        if (keydata == key_break) {
+          key_released_break = true;
         }
-        *(PS2_ptr) = 0xFF;  // resets the input
-        wait_for_sync();
-        pixel_buffer_start = *(pixel_ctrl_ptr + 1);
       }
+      if (key_released != 0) {
+        old_gameLoc = gameLoc;
+        if (key_released == Bkey) {
+          gameLoc = gameLoc + 1;
+          colour = b_colour;
+        } else if (key_released == Rkey) {
+          gameLoc = gameLoc - 1;
+          colour = d_colour;
+        }
+        key_released = 0;
+      }
+
+      draw_line(old_gameLoc, 0, old_gameLoc, 240, colour);
+      draw_line(gameLoc, 0, gameLoc, 240, colour);
+
       wait_for_sync();
       pixel_buffer_start = *(pixel_ctrl_ptr + 1);  // switch back to back buffer
     }
@@ -209,11 +222,17 @@ int main(void) {
         yWins += dy;
         if ((xWins >= SCREENRIGHT - 28) || (xWins <= 0)) dx *= -1;
         if ((yWins >= 240 - 5) || (yWins <= 0)) dy *= -1;
-        // if ((xWins <= SCREENRIGHT - 106 - 28) && (xWins >= 106 - 28) && (yWins >= SCREENBOTTOM - 5)) dx *= -1;
-        // if ((yWins >= SCREENBOTTOM - 5 - 5) && ((xWins >= 106 - 28) && (xWins <= SCREENRIGHT - 106))) dy *= -1;
-        // if ((xWins >= SCREENRIGHT - 106) && (yWins >= SCREENBOTTOM - 5 - 5) && (xWins >))
-        if (xWins >= 106 -28 && xWins <= SCREENRIGHT - 106 && yWins >= SCREENBOTTOM - 10) dy *= -1;
-        if (yWins >= SCREENBOTTOM - 10 && (xWins == 106 - 28 || xWins == SCREENRIGHT - 106)) dx *= -1;
+        // if ((xWins <= SCREENRIGHT - 106 - 28) && (xWins >= 106 - 28) &&
+        // (yWins >= SCREENBOTTOM - 5)) dx *= -1; if ((yWins >= SCREENBOTTOM - 5
+        // - 5) && ((xWins >= 106 - 28) && (xWins <= SCREENRIGHT - 106))) dy *=
+        // -1; if ((xWins >= SCREENRIGHT - 106) && (yWins >= SCREENBOTTOM - 5 -
+        // 5) && (xWins >))
+        if (xWins >= 106 - 28 && xWins <= SCREENRIGHT - 106 &&
+            yWins >= SCREENBOTTOM - 10)
+          dy *= -1;
+        if (yWins >= SCREENBOTTOM - 10 &&
+            (xWins == 106 - 28 || xWins == SCREENRIGHT - 106))
+          dx *= -1;
         wait_for_sync();
         pixel_buffer_start = *(pixel_ctrl_ptr + 1);
         PS2_data = *(PS2_ptr);       // read the Data register in the PS/2 port
@@ -237,11 +256,17 @@ int main(void) {
         yWins += dy;
         if ((xWins >= SCREENRIGHT - 28) || (xWins <= 0)) dx *= -1;
         if ((yWins >= 240 - 5) || (yWins <= 0)) dy *= -1;
-        // if ((xWins <= SCREENRIGHT - 106 - 28) && (xWins >= 106 - 28) && (yWins >= SCREENBOTTOM - 5)) dx *= -1;
-        // if ((yWins >= SCREENBOTTOM - 5 - 5) && ((xWins >= 106 - 28) && (xWins <= SCREENRIGHT - 106))) dy *= -1;
-        // if ((xWins >= SCREENRIGHT - 106) && (yWins >= SCREENBOTTOM - 5 - 5) && (xWins >))
-        if (xWins >= 106 -28 && xWins <= SCREENRIGHT - 106 && yWins >= SCREENBOTTOM - 10) dy *= -1;
-        if (yWins >= SCREENBOTTOM - 10 && (xWins == 106 - 28 || xWins == SCREENRIGHT - 106)) dx *= -1;
+        // if ((xWins <= SCREENRIGHT - 106 - 28) && (xWins >= 106 - 28) &&
+        // (yWins >= SCREENBOTTOM - 5)) dx *= -1; if ((yWins >= SCREENBOTTOM - 5
+        // - 5) && ((xWins >= 106 - 28) && (xWins <= SCREENRIGHT - 106))) dy *=
+        // -1; if ((xWins >= SCREENRIGHT - 106) && (yWins >= SCREENBOTTOM - 5 -
+        // 5) && (xWins >))
+        if (xWins >= 106 - 28 && xWins <= SCREENRIGHT - 106 &&
+            yWins >= SCREENBOTTOM - 10)
+          dy *= -1;
+        if (yWins >= SCREENBOTTOM - 10 &&
+            (xWins == 106 - 28 || xWins == SCREENRIGHT - 106))
+          dx *= -1;
         wait_for_sync();
         pixel_buffer_start = *(pixel_ctrl_ptr + 1);
         PS2_data = *(PS2_ptr);       // read the Data register in the PS/2 port
@@ -786,7 +811,7 @@ void deleteSpaceToContinue() {
   for (int j = 0; j < 5; j++) {
     for (int i = 0; i < 106; i++) {
       short int value;
-      if (i < 53){
+      if (i < 53) {
         value = red;
       } else {
         value = blue;
