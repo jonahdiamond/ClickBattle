@@ -155,7 +155,6 @@ int main(void) {
         pixel_buffer_start = *(pixel_ctrl_ptr + 1);  // switch back to back
         // buffer
         *(PS2_ptr) = 0xFF;  // resets the input
-
       }
     }
     // potentially show 3 2 1 go message with internal clock
@@ -199,33 +198,38 @@ int main(void) {
         key_released = 0;
       }
 
-      if (colour == blue){
-        for (int i = old_gameLoc; i > gameLoc; i--){
+      if (colour == blue) {
+        for (int i = old_gameLoc; i > gameLoc; i--) {
           draw_line(i, 0, i, 240, blue);
           wait_for_sync();
-          pixel_buffer_start = *(pixel_ctrl_ptr + 1);  // switch back to back buffer
+          pixel_buffer_start =
+              *(pixel_ctrl_ptr + 1);  // switch back to back buffer
         }
-        //draw_rect(gameLoc, 0, CLICK_INCREMENT, 240, colour);
-        // wait_for_sync();
-        // pixel_buffer_start = *(pixel_ctrl_ptr + 1);  // switch back to back buffer
-      } else if (colour == red){
-        for (int i = old_gameLoc; i < gameLoc; i++){
+        // draw_rect(gameLoc, 0, CLICK_INCREMENT, 240, colour);
+        //  wait_for_sync();
+        //  pixel_buffer_start = *(pixel_ctrl_ptr + 1);  // switch back to back
+        //  buffer
+      } else if (colour == red) {
+        for (int i = old_gameLoc; i < gameLoc; i++) {
           draw_line(i, 0, i, 240, red);
           wait_for_sync();
-          pixel_buffer_start = *(pixel_ctrl_ptr + 1);  // switch back to back buffer
+          pixel_buffer_start =
+              *(pixel_ctrl_ptr + 1);  // switch back to back buffer
         }
         // draw_rect(old_gameLoc, 0, CLICK_INCREMENT, 240, colour);
         // wait_for_sync();
-        // pixel_buffer_start = *(pixel_ctrl_ptr + 1);  // switch back to back buffer
+        // pixel_buffer_start = *(pixel_ctrl_ptr + 1);  // switch back to back
+        // buffer
       } else {
         continue;
       }
-      
+
       // draw_line(old_gameLoc, 0, old_gameLoc, 240, colour);
       // draw_line(gameLoc, 0, gameLoc, 240, colour);
 
       // wait_for_sync();
-      // pixel_buffer_start = *(pixel_ctrl_ptr + 1);  // switch back to back buffer
+      // pixel_buffer_start = *(pixel_ctrl_ptr + 1);  // switch back to back
+      // buffer
     }
     // post game message of who won
     if (gameLoc <= SCREENLEFT) {
@@ -554,22 +558,22 @@ void drawRWins(int xWins, int yWins, int dx, int dy) {
   }
 }
 
-void deleteBWins(int xWins, int yWins, int dx, int dy){
+void deleteBWins(int xWins, int yWins, int dx, int dy) {
   int counter = 0;
   for (int j = 0; j < 5; j++) {
     for (int i = 0; i < 28; i++) {
       short int value = blue;
       plot_pixel(i + xWins + dx, j + yWins + dy, value);
-      //counter++;
+      // counter++;
     }
   }
 }
-void deleteRWins(int xWins, int yWins, int dx, int dy){
+void deleteRWins(int xWins, int yWins, int dx, int dy) {
   for (int j = 0; j < 5; j++) {
     for (int i = 0; i < 28; i++) {
       short int value = red;
       plot_pixel(i + xWins + dx, j + yWins + dy, value);
-      //counter++;
+      // counter++;
     }
   }
 }
@@ -611,7 +615,6 @@ void deleteSpaceToContinue() {
     }
   }
 }
-
 
 const short int
     CLICKBATTLE[1104] =
