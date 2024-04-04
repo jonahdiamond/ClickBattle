@@ -273,6 +273,8 @@ int main(void) {
           keydata = PS2_data & 0xFF;
           if (keydata == space) {
             nextGame = true;
+            dx = 0;
+            dy = 0;
           }
         }
       }
