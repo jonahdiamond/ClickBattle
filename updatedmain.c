@@ -388,15 +388,12 @@ void wait_for_sync() {  // waits for V-sync and rendering to finish
 }
 
 void draw_line(int x0, int y0, int x1, int y1, short int line_color) {
-  int x, y;
+  int x, y, is_steep;
   if (x1 == x0) {
-    x = x0;
-    for (int y = y0; y <= y1; y++) {
-      plot_pixel(x, y, line_color);
-    }
-    return;
+    is_steep = 2;
+  } else {
+    is_steep = abs(y1 - y0) / abs(x1 - x0);
   }
-  int is_steep = abs(y1 - y0) / abs(x1 - x0);
   if (is_steep > 1) {
     swap(&x0, &y0);
     swap(&x1, &y1);
