@@ -38,6 +38,7 @@ void draw_line(int x0, int y0, int x1, int y1, short int line_color);
 void wait_for_sync();
 void draw_box(int x, int y, int width, short int colour);
 void draw_rect(int x, int y, int width, int height, short int colour);
+void deleteWins(int xWins, int yWins, short int colour);
 
 int pixel_buffer_start;       // global variable
 short int Buffer1[240][512];  // 240 rows, 512 (320 + padding) columns
