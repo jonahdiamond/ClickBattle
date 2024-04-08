@@ -313,12 +313,9 @@ int main(void) {
     dx = ((rand() % 2) * 2) - 1;
     dy = ((rand() % 2) * 2) - 1;
     while (!nextGame) {
-      drawSpaceToContinue();
-      if (Rwon) {
-        drawRWins(xWins, yWins, dx, dy);
-      } else {
-        drawBWins(xWins, yWins, dx, dy);
-      }
+      deleteWins(xWins, yWins, colour);
+      deleteWins(xWins - dx, yWins - dy, colour);
+
       xWins += dx;
       yWins += dy;
       if ((xWins >= SCREENRIGHT - 28) || (xWins <= 0)) dx *= -1;
@@ -329,6 +326,13 @@ int main(void) {
       if (yWins >= SCREENBOTTOM - 10 &&
           (xWins == 106 - 28 || xWins == SCREENRIGHT - 106))
         dx *= -1;
+
+      drawSpaceToContinue();
+      if (Rwon) {
+        drawRWins(xWins, yWins, dx, dy);
+      } else {
+        drawBWins(xWins, yWins, dx, dy);
+      }
 
       wait_for_sync();
       pixel_buffer_start = *(pixel_ctrl_ptr + 1);
@@ -558,6 +562,14 @@ void drawRWins(int xWins, int yWins, int dx, int dy) {
       short int value = RWINSr[counter];
       plot_pixel(i + xWins + dx, j + yWins + dy, value);
       counter++;
+    }
+  }
+}
+
+void deleteWins(int xWins, int yWins, short int colour) {
+  for (int j = 0; j < 5; j++) {
+    for (int i = 0; i < 28; i++) {
+      plot_pixel(i + xWins, j + yWins, colour);
     }
   }
 }
