@@ -700,45 +700,45 @@ void deleteIntenseMode() {
   }
 }
 
-void drawBackspaceToStart() {
-  int counter = 0;
+void drawBackspaceToStart(){
+    int counter = 0;
   for (int j = 0; j < 11; j++) {
     for (int i = 0; i < 112; i++) {
       short int value = pressBackspaceToReady[counter];
-      if (value != 0x0000) plot_pixel(i + 160 + 24, j + 114, value);
+      if (value != 0x0000) plot_pixel(i + 160+24, j + 114, value);
       counter++;
     }
   }
 }
 
-void drawShiftToStart() {
-  int counter = 0;
+void drawShiftToStart(){
+    int counter = 0;
   for (int j = 0; j < 11; j++) {
     for (int i = 0; i < 92; i++) {
       short int value = pressShiftToReady[counter];
-      if (value != 0x0000) plot_pixel(i + 33, j + 114, value);
+      if (value != 0x0000) plot_pixel(i + 34, j + 114, value);
       counter++;
     }
   }
 }
 
-void deleteBackspaceToStart() {
-  int counter = 0;
+void deleteBackspaceToStart(){
+    int counter = 0;
   for (int j = 0; j < 11; j++) {
     for (int i = 0; i < 112; i++) {
       short int value = pressBackspaceToReady[counter];
-      if (value != 0x0000) plot_pixel(i + 160 + 24, j + 114, blue);
+      if (value != 0x0000) plot_pixel(i + 160+24, j + 114, blue);
       counter++;
     }
   }
 }
 
-void deleteShiftToStart() {
-  int counter = 0;
+void deleteShiftToStart(){
+    int counter = 0;
   for (int j = 0; j < 11; j++) {
     for (int i = 0; i < 92; i++) {
       short int value = pressShiftToReady[counter];
-      if (value != 0x0000) plot_pixel(i + 33, j + 114, red);
+      if (value != 0x0000) plot_pixel(i + 34, j + 114, red);
       counter++;
     }
   }
