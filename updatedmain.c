@@ -16,8 +16,8 @@
 #define A_INPUT_HEX 0x1C;  // A
 #define S_INPUT_HEX 0x1B;  // S
 #define D_INPUT_HEX 0x23;  // D
-#define ONE_INPUT_HEX 0x16;
-#define TWO_INPUT_HEX 0x1E;
+#define ONE_INPUT_HEX 0x16; // 1 key
+#define TWO_INPUT_HEX 0x1E; // 2 key
 #define BREAK_INPUT_HEX 0xF0;  // break code
 #define SPACE_INPUT_HEX 0x29;  // space
 #define LED_BASE 0xFF2000000;
@@ -45,37 +45,38 @@ short int Buffer2[240][512];
 
 int gameLoc;
 
-void drawCLICKBATTLE();
+void drawCLICKBATTLE(); //draw CLICK BATTLE bitmap
 void deleteCLICKBATTLE();
 
-void drawChillMode();
+void drawChillMode(); //draw CHILL MODE bitmap
 void deleteChillMode();
-void drawIntenseMode();
+void drawIntenseMode(); //draw INTENSE MODE bitmap
 void deleteIntenseMode();
 
-void drawBToStart();
+void drawBToStart(); //draw CLICK BACKSPACE TO READY bitmap
 void deleteBToStart();
-void drawReadyB();
+void drawReadyB(); //draw READY! bitmap on blue side
 void deleteReadyR();
-void drawRToStart();
+void drawRToStart();  //draw CLICK SHIFT TO READY 
 void deleteRToStart();
-void drawReadyR();
+void drawReadyR();  //draw READY! bitmap on red side
 void deleteReadyB();
-void drawBWins();
-void drawRWins();
+void drawBWins();   //draw B WINS!
+void drawRWins();   //draw R WINS!
 void deleteWins(int xWins, int yWins, short int colour);
 
-void drawBackspaceToStart();
-void drawShiftToStart();
-void deleteBackspaceToStart();
+void drawBackspaceToStart(); //draw CLICK BACKSPACE TO START
+void drawShiftToStart();      //draw CLICK SHIFT TO START
+void deleteBackspaceToStart(); 
 void deleteShiftToStart();
 
 
 // void drawSpaceToContinue();
-void drawSpaceToContinueR();
-void drawSpaceToContinueB();
+void drawSpaceToContinueR(); //draw SPACE TO CONTINUE on red win
+void drawSpaceToContinueB();//draw SPACE TO CONTINUE on blue win
 void deleteSpaceToContinue();
 
+//bitmaps initialized here and defined at the bottom
 const short int CLICKBATTLE[1104];
 const short int PRESSRTOREADYr[360];
 const short int PRESSBTOREADYb[360];
@@ -96,6 +97,7 @@ bool Rwins = false;
 bool endGame = false;
 
 int main(void) {
+  //initialize double buffering
   volatile int* pixel_ctrl_ptr = (int*)0xFF203020;
   *(pixel_ctrl_ptr + 1) = (int)&Buffer1;
   wait_for_sync();  // waits for vsync
@@ -111,14 +113,14 @@ int main(void) {
   pixel_buffer_start = *(pixel_ctrl_ptr + 1);  // switch back to back buffer
   volatile int* PS2_ptr = (int*)PS2_BASE;
   volatile int* LED_ptr = (int*)LED_BASE;
-
+  //initialize PS2 key inputs
   int Rkey = R_INPUT_HEX;
   int Bkey = B_INPUT_HEX;
   int key1 = ONE_INPUT_HEX;
   int key2 = TWO_INPUT_HEX;
   int key_break = BREAK_INPUT_HEX;
   int space = SPACE_INPUT_HEX;
-
+  //initialize all values
   int xWins = 146, yWins = 120, dx, dy;
 
   int PS2_data, RVALID;
@@ -134,6 +136,7 @@ int main(void) {
   int CLICKINCREMENT = CLICK_INCREMENT;
 
   while (1) {
+    //set start screen, draw start screen bitmaps
     modeChosen = false;
     xWins = 146;
     yWins = 120;
@@ -150,6 +153,7 @@ int main(void) {
     drawIntenseMode();
     wait_for_sync();
     pixel_buffer_start = *(pixel_ctrl_ptr + 1);
+    //let user choose mode, exit loop once chosen
     while (!modeChosen) {
       PS2_data = *(PS2_ptr);       // read the Data register in the PS/2 port
       RVALID = PS2_data & 0x8000;  // extract the RVALID field
@@ -167,7 +171,7 @@ int main(void) {
         // buffer
       }
     }
-
+    //wait a bit to show user mode chosen
     int waitCounter = 2;
     while (waitCounter > 0) {
       PS2_data = *(PS2_ptr);       // read the Data register in the PS/2 port
@@ -176,6 +180,7 @@ int main(void) {
         waitCounter = waitCounter - 1;
       }
     }
+    //delete bitmaps
     deleteChillMode();
     deleteIntenseMode();
     startScreen();
@@ -243,7 +248,6 @@ int main(void) {
         waitCounter = waitCounter - 1;
       }
     }
-    // potentially show 3 2 1 go message with internal clock
     // delete start screen messages
     deleteCLICKBATTLE();
     wait_for_sync();
@@ -254,9 +258,9 @@ int main(void) {
 
     // actual gameplay loop - in game if gameLoc is in bounds of screen,
     // otherwise game over
+    // draws the click increment based on game mode, ie chill = 16, intense = 32
     gameLoc = (SCREENLEFT + SCREENRIGHT) / 2;
     old_gameLoc = gameLoc;
-
     while (gameLoc > SCREENLEFT && gameLoc < SCREENRIGHT) {
       PS2_data = *(PS2_ptr);       // read the Data register in the PS/2 port
       RVALID = PS2_data & 0x8000;  // extract the RVALID field
