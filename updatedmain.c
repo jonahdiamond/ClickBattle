@@ -327,14 +327,14 @@ int main(void) {
 
       xWins += dx;
       yWins += dy;
-      if ((xWins >= SCREENRIGHT - 28) || (xWins <= 0)) dx *= -2;
-      if ((yWins >= 240 - 5) || (yWins <= 0)) dy *= -2;
+      if ((xWins >= SCREENRIGHT - 28) || (xWins <= 0)) dx *= -1;
+      if ((yWins >= 240 - 5) || (yWins <= 0)) dy *= -1;
       if (xWins >= 106 - 28 && xWins <= SCREENRIGHT - 106 &&
           yWins >= SCREENBOTTOM - 10)
-        dy *= -2;
+        dy *= -1;
       if (yWins >= SCREENBOTTOM - 10 &&
           (xWins == 106 - 28 || xWins == SCREENRIGHT - 106))
-        dx *= -2;
+        dx *= -1;
 
       // drawSpaceToContinue();
       if (Rwon){
