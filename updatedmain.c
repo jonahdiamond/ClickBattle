@@ -276,11 +276,12 @@ int main(void) {
         key_released = 0;
       }
 
-      draw_line(old_gameLoc, 0, old_gameLoc, 240, colour);
-
       if (gameLoc > old_gameLoc) {
+        draw_line(old_gameLoc, 0, old_gameLoc, 240, colour);
         draw_rect(gameLoc - CLICKINCREMENT, 0, CLICKINCREMENT, 240, colour);
+
       } else if (gameLoc < old_gameLoc) {
+        draw_line(old_gameLoc, 0, old_gameLoc, 240, colour);
         draw_rect(gameLoc, 0, CLICKINCREMENT, 240, colour);
       }
 
